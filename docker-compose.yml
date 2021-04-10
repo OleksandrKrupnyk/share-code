@@ -1,0 +1,46 @@
+# Версия файла для сборки
+version: "3"
+# Раздел сервисов (докер контейнеров)
+services:
+    #  Контейнер с кодом
+    code:
+        # Собираем с докер файла
+        build:
+            context: .
+            args:
+                # Имя докер-образа
+                tag: lussy
+        # имя докер контейнера с кодом        
+        container_name: data_code
+        # Задаем монтирование файлов докер обаза в том на хосте
+        # Если такой том до этого не существовал то он будет создан и код из папки  /data 
+        # докер образа будет скопировани в папку тома
+        # Важно! Если такой том существовал то содержимое тома "data_code" заменит 
+        # содержимое папки  /data 
+        volumes:
+            - data_code:/data
+    # Контейнер с сервером
+    nginx:
+        # Докер образ внутри которого же установлен nginx и php
+        image: wyveo/nginx-php-fpm:php74
+        # имя контейнера при создани
+        container_name: webserver
+        # отркываем порты
+        ports:
+            - 8080:80
+        # монтируем содержимое тома "data_code" в папку докера которая является корнем web каталога
+        volumes:
+            - data_code:/usr/share/nginx/html:ro
+        # указываем зависимости    
+        depends_on:
+            - code
+        # связываем докер контейнер nginx с code
+        links:
+            - code
+# Указываем какие имена томов буду создани 
+# В результате создается том с имененем <имя-католога-с-docker-compose-файлом>_data_code
+volumes:
+    data_code:
+# docker-compose up -d --build
+# docker-compose down
+# docker volume rm docker-study_data_code
